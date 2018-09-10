@@ -1,0 +1,5 @@
+* TODO: Make shader specifyable by cmd/url-arg
+* TODO: Frametime in stdout
+* TODO: Native: Observe shader file in question and hot-swap shaders
+
+* TODO: Make overview thing with selectable shader

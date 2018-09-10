@@ -1,0 +1,14 @@
+body {
+  background-color: #888888;
+}
+
+div.tbn-container {
+  margin: 40px 0px 0px 0px;
+}
+
+canvas#tbn-canvas {
+  display: block;
+  width: 640px;
+  height: 480px;
+  margin: auto;
+}
