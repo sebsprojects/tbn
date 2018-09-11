@@ -2,7 +2,7 @@
 ifneq "$(findstring native, $(MAKECMDGOALS))" ""
 CC = gcc
 CC_FLAGS = -Wall -O3
-LN_FLAGS = -L ../elfclib/bin -lelfc -lm -lglfw -lGLESv2
+LN_FLAGS = -lm -lglfw -lGLESv2
 OBJ_EXTENSION = o
 endif
 
@@ -10,8 +10,7 @@ endif
 ifneq "$(findstring js, $(MAKECMDGOALS))" ""
 CC = emcc
 CC_FLAGS = -Wall -O3
-LN_FLAGS = -L ../elfclib/bin -lelfc_js -lm -lglfw -lGLESv2 -s USE_GLFW=3 \
-	   -s FULL_ES2=1
+LN_FLAGS = -lm -lglfw -lGLESv2 -s USE_GLFW=3 -s FULL_ES2=1
 OBJ_EXTENSION = bc
 endif
 

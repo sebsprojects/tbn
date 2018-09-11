@@ -11,57 +11,32 @@
 #include <emscripten.h>
 #endif
 
-#include <elfc_common.h>
-
+#include "common.h"
+#include "platform.h"
 #include "shader.h"
 
 
-GLFWwindow *window = 0;
-
+Platform platform;
 ShaderProgram shaderProgram = {
   0, 0, 0, 0, 0, 0, SHADER_NOERROR
 };
 
-f32 vData[] = {
-  -1.0, 1.0, 0.0, 1.0,
-  1.0, 1.0, 0.0, 1.0,
-  1.0, -1.0, 0.0, 1.0,
-  -1.0, -1.0, 0.0, 1.0
-};
-u16 iData[] = {
-  0, 1, 2, 2, 3, 0
-};
+GLint resLocation = -1;
+GLint timeLocation = -1;
+
 f32 res[] = {
   640.0, 480.0, 1.0 // z is pixel-aspect ratio
 };
 
-struct timespec tSpec;
-f64 startTime = -1; // in seconds
-
-f64 getCurrentTime() {
-  clock_gettime(CLOCK_REALTIME, &tSpec);
-  return tSpec.tv_sec + (tSpec.tv_nsec / 1.0e9);
-}
-
-f64 getTimeDiff() {
-  return getCurrentTime() - startTime;
-}
-
-GLuint vertexBuffer = 0;
-GLuint indexBuffer = 0;
-
-GLint resLocation = -1;
-GLint timeLocation = -1;
 
 void exitProgram(i32 code) {
+  destroyPlatform(platform);
   if(shaderProgram.vertSrc != 0) {
     free(shaderProgram.vertSrc);
   }
   if(shaderProgram.fragSrc != 0) {
     free(shaderProgram.fragSrc);
   }
-  glfwDestroyWindow(window);
-  glfwTerminate();
 #ifdef __EMSCRIPTEN__
   emscripten_cancel_main_loop();
 #else
@@ -69,9 +44,6 @@ void exitProgram(i32 code) {
 #endif
 }
 
-void error_callback(i32 error, const char* description) {
-  fprintf(stderr, "Error: %s\n", description);
-}
 
 void allocFileContent(char *content, char **target, i32 size) {
   *target = malloc(size + 1); // add space for \0
@@ -123,22 +95,9 @@ void loadShaderFile(char *path, char *shaderExt, char **target) {
 }
 
 void init(char *shaderPath) {
-  startTime = getCurrentTime();
   shaderProgram.filePath = shaderPath;
   loadShaderFile(shaderProgram.filePath, ".vert", &shaderProgram.vertSrc);
   loadShaderFile(shaderProgram.filePath, ".frag", &shaderProgram.fragSrc);
-
-  glClearColor(0.0, 0.0, 0.0, 1.0);
-  glViewport(0, 0, (i32) res[0], (i32) res[1]);
-  glGenBuffers(1, &vertexBuffer);
-  glGenBuffers(1, &indexBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vData), vData, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(iData), iData,
-               GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void initShader() {
@@ -161,8 +120,9 @@ void initShader() {
 
 void draw() {
   glClear(GL_COLOR_BUFFER_BIT);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+  glViewport(0, 0, (GLuint) res[0], (GLuint) res[1]);
+  glBindBuffer(GL_ARRAY_BUFFER, platform.vertexBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform.indexBuffer);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
   glUseProgram(shaderProgram.prog);
@@ -170,10 +130,9 @@ void draw() {
     glUniform3fv(resLocation, 1, res);
   }
   if(timeLocation >= 0) {
-    glUniform1f(timeLocation, getTimeDiff());
+    glUniform1f(timeLocation, getDiffToStartTime(platform));
   }
-  glDrawElements(GL_TRIANGLES, sizeof(iData) / sizeof(u16),
-                 GL_UNSIGNED_SHORT, 0);
+  glDrawElements(GL_TRIANGLES, platform.indexNum, GL_UNSIGNED_SHORT, 0);
   glUseProgram(0);
   glDisableVertexAttribArray(0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -188,22 +147,7 @@ void render() {
 }
 
 i32 main(int argc, char **argv) {
-  glfwSetErrorCallback(error_callback);
-  if(!glfwInit()) {
-    return 1;
-  }
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  glfwWindowHint(GLFW_RESIZABLE, 0);
-  window = glfwCreateWindow((i32) res[0], (i32) res[1], "Study", 0, 0);
-  if(!window) {
-    glfwTerminate();
-    return 1;
-  }
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(1);
-
+  platform = createPlatform();
   char *shaderPath = "tbn/shader/default";
   if(argc > 1) {
     shaderPath = argv[1];
@@ -214,9 +158,9 @@ i32 main(int argc, char **argv) {
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(render, 0, 1);
 #else
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(platform.window)) {
     render();
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(platform.window);
     glfwPollEvents();
   }
 #endif
