@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include "platform.h"
 
@@ -53,20 +54,21 @@ void createGeometry(GLuint *vb, GLuint *ib) {
 
 // ----------------------------------------------------------------------------
 
-Platform createPlatform() {
-  Platform p;
-  p.indexNum = sizeof(iData) / sizeof(u16);
-  p.startTime = getCurrentTime();
-  createGlfw(&p.window);
-  createGeometry(&p.vertexBuffer, &p.indexBuffer);
+Platform *createPlatform() {
+  Platform *p = malloc(sizeof(Platform));
+  p->indexNum = sizeof(iData) / sizeof(u16);
+  p->startTime = getCurrentTime();
+  createGlfw(&p->window);
+  createGeometry(&p->vertexBuffer, &p->indexBuffer);
   return p;
 }
 
-void destroyPlatform(Platform p) {
-  if(p.window != 0) {
-    glfwDestroyWindow(p.window);
+void destroyPlatform(Platform *p) {
+  if(p->window != 0) {
+    glfwDestroyWindow(p->window);
   }
   glfwTerminate();
+  free(p);
 }
 
 f64 getCurrentTime() {
@@ -74,6 +76,6 @@ f64 getCurrentTime() {
   return tspec.tv_sec + (tspec.tv_nsec / 1.0e9);
 }
 
-f64 getDiffToStartTime(Platform p) {
-  return p.startTime - getCurrentTime();
+f64 getDiffToStartTime(Platform *p) {
+  return p->startTime - getCurrentTime();
 }

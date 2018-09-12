@@ -59,4 +59,6 @@ void compileAndLinkShaderProgram(ShaderProgram *p) {
   }
   glDetachShader(p->prog, p->vert);
   glDetachShader(p->prog, p->frag);
+  p->resUniformLoc = glGetUniformLocation(p->prog, "iResolution");
+  p->timUniformLoc = glGetUniformLocation(p->prog, "iTime");
 }

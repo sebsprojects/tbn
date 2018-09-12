@@ -20,6 +20,8 @@ struct ShaderProgram {
   GLuint frag;
   GLuint prog;
   enum ShaderError error;
+  GLuint resUniformLoc;
+  GLuint timUniformLoc;
 };
 typedef struct ShaderProgram ShaderProgram;
 

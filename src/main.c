@@ -2,10 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <math.h>
-#include <GLFW/glfw3.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -14,28 +10,18 @@
 #include "common.h"
 #include "platform.h"
 #include "shader.h"
+#include "scene.h"
 
 
-Platform platform;
-ShaderProgram shaderProgram = {
-  0, 0, 0, 0, 0, 0, SHADER_NOERROR
-};
-
-GLint resLocation = -1;
-GLint timeLocation = -1;
-
-f32 res[] = {
-  640.0, 480.0, 1.0 // z is pixel-aspect ratio
-};
-
+Platform *platform = 0;
+Scene *scene = 0;
 
 void exitProgram(i32 code) {
-  destroyPlatform(platform);
-  if(shaderProgram.vertSrc != 0) {
-    free(shaderProgram.vertSrc);
+  if(platform != 0) {
+    destroyPlatform(platform);
   }
-  if(shaderProgram.fragSrc != 0) {
-    free(shaderProgram.fragSrc);
+  if(scene != 0) {
+    destroyScene(scene);
   }
 #ifdef __EMSCRIPTEN__
   emscripten_cancel_main_loop();
@@ -44,106 +30,30 @@ void exitProgram(i32 code) {
 #endif
 }
 
-
-void allocFileContent(char *content, char **target, i32 size) {
-  *target = malloc(size + 1); // add space for \0
-  strncpy(*target, content, size); // size does not include \0
-  (*target)[size] = '\0'; // manually 0-terminate the string
-}
-
-void emSupplyFile(void *arg, void *data, i32 size) {
-  allocFileContent(data, (char **) arg, size);
-}
-
-void emFileFetchError(void *arg) {
-  shaderProgram.error = SHADER_ERROR_READ_SOURCE;
-}
-
-void loadShaderFile(char *path, char *shaderExt, char **target) {
-#ifdef __EMSCRIPTEN__
-  char *fullPath = malloc(strlen(path) + 7); // add /, \0 and .vert or .frag
-  fullPath[0] = '/';
-  strcpy(&fullPath[1], path);
-  strcat(fullPath, shaderExt);
-  printf("Shader Path: %s\n", fullPath);
-  emscripten_async_wget_data(fullPath, target, emSupplyFile,
-                             emFileFetchError);
-  free(fullPath);
-#else
-  char *fullPath = malloc(strlen(path) + 8); // add ./, \0 and .vert or .frag
-  fullPath[0] = '.'; fullPath[1] = '/';
-  strcpy(&fullPath[2], path);
-  strcat(fullPath, shaderExt);
-  printf("Shader Path: %s\n", fullPath);
-  char *buf = 0;
-  i32 len;
-  FILE *file = fopen(fullPath, "rb");
-  if(file) {
-    fseek(file, 0, SEEK_END);
-    len = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    buf = malloc(len);
-    fread(buf, 1, len, file);
-    allocFileContent(buf, target, len);
-    free(buf);
-    fclose(file);
-  } else {
-    shaderProgram.error = SHADER_ERROR_READ_SOURCE;
-  }
-  free(fullPath);
-#endif
-}
-
-void init(char *shaderPath) {
-  shaderProgram.filePath = shaderPath;
-  loadShaderFile(shaderProgram.filePath, ".vert", &shaderProgram.vertSrc);
-  loadShaderFile(shaderProgram.filePath, ".frag", &shaderProgram.fragSrc);
-}
-
-void initShader() {
-  if(shaderProgram.error != SHADER_NOERROR) {
-    printf("Error loading shader program with code %d\n",
-           (i32) shaderProgram.error);
-    exitProgram(1);
-  } else if(shaderProgram.vertSrc != 0 && shaderProgram.fragSrc != 0 &&
-            shaderProgram.prog == 0) {
-    //printf("Vec Source:\n%s\n", shaderProgram.vertSrc);
-    //printf("Frag Source:\n%s\n", shaderProgram.fragSrc);
-    compileAndLinkShaderProgram(&shaderProgram);
-    if(shaderProgram.error == SHADER_NOERROR) {
-      printf("Shader loaded and compiled without error\n");
-      resLocation = glGetUniformLocation(shaderProgram.prog, "iResolution");
-      timeLocation = glGetUniformLocation(shaderProgram.prog, "iTime");
-    }
-  }
-}
-
-void draw() {
+void render() {
   glClear(GL_COLOR_BUFFER_BIT);
-  glViewport(0, 0, (GLuint) res[0], (GLuint) res[1]);
-  glBindBuffer(GL_ARRAY_BUFFER, platform.vertexBuffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform.indexBuffer);
+  if(scene == 0) {
+    return;
+  }
+  glViewport(0, 0, (GLuint) scene->resolution[0],
+                   (GLuint) scene->resolution[1]);
+  glBindBuffer(GL_ARRAY_BUFFER, platform->vertexBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform->indexBuffer);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-  glUseProgram(shaderProgram.prog);
-  if(resLocation >= 0) {
-    glUniform3fv(resLocation, 1, res);
-  }
-  if(timeLocation >= 0) {
-    glUniform1f(timeLocation, getDiffToStartTime(platform));
-  }
-  glDrawElements(GL_TRIANGLES, platform.indexNum, GL_UNSIGNED_SHORT, 0);
-  glUseProgram(0);
+  drawScene(platform, scene);
   glDisableVertexAttribArray(0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void render() {
-  initShader();
-  if(shaderProgram.error == SHADER_NOERROR && shaderProgram.prog != 0) {
-    draw();
-  }
+void loadSceneSuccess(Scene *s) {
+  scene = s;
+}
+
+void loadSceneError(char *msg) {
+  printf("Scene Load Error: %s\n", msg);
+  exitProgram(1);
 }
 
 i32 main(int argc, char **argv) {
@@ -153,18 +63,17 @@ i32 main(int argc, char **argv) {
     shaderPath = argv[1];
   }
   printf("Shader Path: %s\n", shaderPath);
-  init(shaderPath);
+  createScene(platform, shaderPath, loadSceneSuccess, loadSceneError);
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(render, 0, 1);
 #else
-  while (!glfwWindowShouldClose(platform.window)) {
+  while (!glfwWindowShouldClose(platform->window)) {
     render();
-    glfwSwapBuffers(platform.window);
+    glfwSwapBuffers(platform->window);
     glfwPollEvents();
   }
 #endif
-
   exitProgram(0);
   return 0;
 }
