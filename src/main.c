@@ -57,6 +57,7 @@ void loadSceneError(char *msg) {
 }
 
 i32 main(int argc, char **argv) {
+  printf("Program running: %s\n", argv[0]);
   platform = createPlatform();
   char *shaderPath = "tbn/shader/default";
   if(argc > 1) {

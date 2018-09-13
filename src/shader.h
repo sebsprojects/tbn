@@ -3,6 +3,8 @@
 
 #include <GLES2/gl2.h>
 
+#include "common.h"
+
 
 enum ShaderError {
   SHADER_NOERROR = 0,
@@ -16,6 +18,7 @@ struct ShaderProgram {
   char *filePath;
   char *vertSrc;
   char *fragSrc;
+  bool hasDefaultVert;
   GLuint vert;
   GLuint frag;
   GLuint prog;
@@ -26,6 +29,5 @@ struct ShaderProgram {
 typedef struct ShaderProgram ShaderProgram;
 
 void compileAndLinkShaderProgram(ShaderProgram *p);
-
 
 #endif

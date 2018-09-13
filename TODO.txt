@@ -1,5 +1,15 @@
-* TODO: Make shader specifyable by cmd/url-arg
+* TODO: Make shader specifyable url-arg
 * TODO: Frametime in stdout
 * TODO: Native: Observe shader file in question and hot-swap shaders
 
-* TODO: Make overview thing with selectable shader
+* TODO: Shader-Project Structure:
+  > project-directory/
+    > scene1/
+      > scene1.vert
+      > scene1_stage_1.frag
+      > scene1_stage_2.frag
+      > texture1.png
+      > texture2.png
+      > resolution.txt
+    > scene2
+      > ...

@@ -16,17 +16,16 @@ void createScene(Platform *platform, char *path,
   scene->resolution[0] = 640; // TODO: Hardcoded resolution values
   scene->resolution[1] = 480;
   ShaderProgram p = {
-    0, 0, 0, 0, 0, 0, SHADER_NOERROR, -1, -1
+    0, 0, 0, 0, 0, 0, 0, SHADER_NOERROR, -1, -1
   };
   scene->shaderProgram = p;
   LoadState *ls = malloc(sizeof(LoadState));
   ls->scene = scene;
   ls->loadSuccess = resLoadSuccess;
   ls->loadError = resLoadError;
-  ls->paths = malloc(2 * sizeof(char*));
-  ls->paths[0] = mallocFullShaderPath(path, ".vert");
-  ls->paths[1] = mallocFullShaderPath(path, ".frag");
-  ls->pathsLen = 2;
+  ls->paths = malloc(1 * sizeof(char*));
+  ls->paths[0] = mallocFullShaderPath(path, ".frag");
+  ls->pathsLen = 1;
   ls->currentPathIndex = 0;
   i32 i; for(i = 0; i < ls->pathsLen; i++) {
     printf("Need to load resources: %s\n", ls->paths[i]);
@@ -35,7 +34,7 @@ void createScene(Platform *platform, char *path,
 }
 
 void destroyScene(Scene *scene) {
-  if(scene->shaderProgram.vertSrc != 0) {
+  if(!scene->shaderProgram.hasDefaultVert && scene->shaderProgram.vertSrc != 0) {
     free(scene->shaderProgram.vertSrc);
   }
   if(scene->shaderProgram.fragSrc != 0) {
