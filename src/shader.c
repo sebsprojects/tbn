@@ -3,10 +3,12 @@
 
 #include "shader.h"
 
+
 static char *defaultVertSrc =
   "attribute vec4 position;\n void main() {\n gl_Position = position;\n }";
 
-void compileAndLinkShaderProgram(ShaderProgram *p) {
+void compileAndLinkShaderProgram(ShaderProgram *p)
+{
   if(p->vertSrc == 0) {
     p->vertSrc = defaultVertSrc;
     p->hasDefaultVert = 1;

@@ -1,3 +1,8 @@
+var href = window.location.href;
+// href will be https://somedomain/tbn/project/shader and we want to
+// extract project/shader
+var shaderPath = "tbn/projects/" + href.split("/").slice(4).join("/");
+
 var Module = {
   preRun: [],
   postRun: [],
@@ -20,4 +25,5 @@ var Module = {
   locateFile: function(s) {
     return "/tbn/" + s;
   },
+  arguments: [ shaderPath ],
 }

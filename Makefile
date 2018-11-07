@@ -1,22 +1,20 @@
+CC_FLAGS = -Wall -O3 -std=c99 -D_XOPEN_SOURCE=500
+LN_FLAGS = -lm -lglfw -lGLESv2
+
 # Native exec
 ifneq "$(findstring native, $(MAKECMDGOALS))" ""
 CC = gcc
-CC_FLAGS = -Wall -O3
-LN_FLAGS = -lm -lglfw -lGLESv2
 OBJ_EXTENSION = o
 endif
 
 # JS exec
 ifneq "$(findstring js, $(MAKECMDGOALS))" ""
 CC = emcc
-CC_FLAGS = -Wall -O3
-LN_FLAGS = -lm -lglfw -lGLESv2 -s USE_GLFW=3 -s FULL_ES2=1
+LN_FLAGS += -s USE_GLFW=3 -s FULL_ES2=1
 OBJ_EXTENSION = bc
 endif
 
-# -----------------------------------------------------------------------------
-
-INCLUDES = -I ../elfclib/include/
+# ----------------------------------------------------------------------------
 
 SRC_FILES = $(wildcard src/*.c)
 OBJ_FILES = $(addprefix bin/,$(notdir $(SRC_FILES:.c=.$(OBJ_EXTENSION))))
@@ -36,7 +34,7 @@ $(BIN_JS): $(OBJ_FILES)
 
 -include $(DEP_FILES)
 
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 bin/%.$(OBJ_EXTENSION): src/%.c
 	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@

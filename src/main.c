@@ -16,7 +16,8 @@
 Platform *platform = 0;
 Scene *scene = 0;
 
-void exitProgram(i32 code) {
+void exitProgram(i32 code)
+{
   if(platform != 0) {
     destroyPlatform(platform);
   }
@@ -30,7 +31,8 @@ void exitProgram(i32 code) {
 #endif
 }
 
-void render() {
+void render()
+{
   glClear(GL_COLOR_BUFFER_BIT);
   if(scene == 0) {
     return;
@@ -47,19 +49,21 @@ void render() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void loadSceneSuccess(Scene *s) {
+void loadSceneSuccess(Scene *s)
+{
   scene = s;
 }
 
-void loadSceneError(char *msg) {
+void loadSceneError(char *msg)
+{
   printf("Scene Load Error: %s\n", msg);
   exitProgram(1);
 }
 
-i32 main(int argc, char **argv) {
-  printf("Program running: %s\n", argv[0]);
+i32 main(int argc, char **argv)
+{
   platform = createPlatform();
-  char *shaderPath = "tbn/shader/default";
+  char *shaderPath = "tbn/projects/symbols1/symbols1";
   if(argc > 1) {
     shaderPath = argv[1];
   }

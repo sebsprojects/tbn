@@ -5,6 +5,7 @@
 #include "platform.h"
 #include "shader.h"
 
+
 struct Scene {
   char *path;
   ShaderProgram shaderProgram;

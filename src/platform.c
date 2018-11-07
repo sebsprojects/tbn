@@ -16,13 +16,15 @@ static u16 iData[] = {
 };
 static struct timespec tspec;
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
-void glfwErrorCallback(i32 error, const char* description) {
+void glfwErrorCallback(i32 error, const char* description)
+{
   fprintf(stderr, "Error: %s\n", description);
 }
 
-void createGlfw(GLFWwindow **window) {
+void createGlfw(GLFWwindow **window)
+{
   glfwSetErrorCallback(glfwErrorCallback);
   if(!glfwInit()) {
     *window = 0;
@@ -40,7 +42,8 @@ void createGlfw(GLFWwindow **window) {
   *window = w;
 }
 
-void createGeometry(GLuint *vb, GLuint *ib) {
+void createGeometry(GLuint *vb, GLuint *ib)
+{
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glGenBuffers(1, vb);
   glGenBuffers(1, ib);
@@ -52,9 +55,10 @@ void createGeometry(GLuint *vb, GLuint *ib) {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
-Platform *createPlatform() {
+Platform *createPlatform()
+{
   Platform *p = malloc(sizeof(Platform));
   p->indexNum = sizeof(iData) / sizeof(u16);
   p->startTime = getCurrentTime();
@@ -63,7 +67,8 @@ Platform *createPlatform() {
   return p;
 }
 
-void destroyPlatform(Platform *p) {
+void destroyPlatform(Platform *p)
+{
   if(p->window != 0) {
     glfwDestroyWindow(p->window);
   }
@@ -71,11 +76,13 @@ void destroyPlatform(Platform *p) {
   free(p);
 }
 
-f64 getCurrentTime() {
+f64 getCurrentTime()
+{
   clock_gettime(CLOCK_REALTIME, &tspec);
   return tspec.tv_sec + (tspec.tv_nsec / 1.0e9);
 }
 
-f64 getDiffToStartTime(Platform *p) {
+f64 getDiffToStartTime(Platform *p)
+{
   return p->startTime - getCurrentTime();
 }
