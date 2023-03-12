@@ -63,7 +63,8 @@ void loadSceneError(char *msg)
 i32 main(int argc, char **argv)
 {
   platform = createPlatform();
-  char *shaderPath = "tbn/projects/symbols1/symbols1";
+  char *shaderPath = "tbn/projects/symbols1/vertical2";
+  //char *shaderPath = "tbn/projects/misc/square1";
   if(argc > 1) {
     shaderPath = argv[1];
   }

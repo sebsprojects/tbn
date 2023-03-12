@@ -10,6 +10,7 @@ struct Scene {
   char *path;
   ShaderProgram shaderProgram;
   f32 resolution[2];
+  f64 lastDrawTime;
 };
 typedef struct Scene Scene;
 

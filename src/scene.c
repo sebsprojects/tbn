@@ -20,6 +20,7 @@ void createScene(Platform *platform, char *path,
     0, 0, 0, 0, 0, 0, 0, SHADER_NOERROR, -1, -1
   };
   scene->shaderProgram = p;
+  scene->lastDrawTime = platform->startTime;
   LoadState *ls = malloc(sizeof(LoadState));
   ls->scene = scene;
   ls->loadSuccess = resLoadSuccess;
@@ -58,6 +59,10 @@ void drawScene(Platform *platform, Scene *scene)
   }
   glDrawElements(GL_TRIANGLES, platform->indexNum, GL_UNSIGNED_SHORT, 0);
   glUseProgram(0);
+  // FPS print
+  f64 now = getCurrentTime();
+  printf("%.2f ms\n", (now - scene->lastDrawTime) * 1000.0);
+  scene->lastDrawTime = now;
 }
 
 // ---------------------------------------------------------------------------

@@ -84,5 +84,5 @@ f64 getCurrentTime()
 
 f64 getDiffToStartTime(Platform *p)
 {
-  return p->startTime - getCurrentTime();
+  return getCurrentTime() - p->startTime;
 }
